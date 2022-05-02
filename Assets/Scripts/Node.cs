@@ -8,13 +8,15 @@ public class Node
     private int gCost;
     private int hCost;    
     private bool walkable;
-
+    private int movementPenalty;
     private Node parentNode;
 
-    public Node(Vector2Int positionInGrid,bool walkable)
+
+    public Node(Vector2Int positionInGrid,bool walkable,int movementPenalty)
     {
         this.positionInGrid = positionInGrid;
         this.walkable = walkable;
+        this.movementPenalty = movementPenalty;
         this.parentNode = null;
     }
 
@@ -25,4 +27,5 @@ public class Node
     public int FCost { get =>gCost + hCost;}
     public Node ParentNode { get => parentNode; set => parentNode = value; }
     public bool Walkable { get => walkable; set => this.walkable = value;}
+    public int MovementPenalty { get => movementPenalty; set => movementPenalty = value; }
 }
