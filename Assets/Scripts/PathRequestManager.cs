@@ -5,6 +5,7 @@ using UnityEngine;
 [RequireComponent(typeof(Pathfinding))]
 public class PathRequestManager : GenericSingleton<PathRequestManager>
 {
+    [SerializeField]private bool showGrid = true;
     public Action<List<Vector2>,bool> OnPathFindFinish;
     private Queue<PathRequest> _pathRequests;
     
@@ -26,7 +27,10 @@ public class PathRequestManager : GenericSingleton<PathRequestManager>
     }
     
     private void Update() {
-        _pathFinding.DisplayGrid();
+        if(showGrid)
+        {
+            _pathFinding.DisplayGrid();
+        }
     }
     public void RequestPath(Vector2 startPosition,Vector2 endPosition,System.Action<List<Vector2>,bool> OnPathComplete)
     {

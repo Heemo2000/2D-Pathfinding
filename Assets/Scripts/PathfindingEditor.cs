@@ -14,12 +14,15 @@ public class PathfindingEditor : Editor
     SerializedProperty shouldUsePenaltyCost;
     SerializedProperty terrainTypes;
 
+    SerializedProperty obstaclePenaltyCost;
+
     private void OnEnable() {
         width = serializedObject.FindProperty("width");
         height = serializedObject.FindProperty("height");
         cellSize = serializedObject.FindProperty("cellSize");
         shouldUsePenaltyCost = serializedObject.FindProperty("shouldUsePenaltyCost");
         terrainTypes = serializedObject.FindProperty("terrainTypes");
+        obstaclePenaltyCost = serializedObject.FindProperty("obstaclePenaltyCost");
     }
     public override void OnInspectorGUI()
     {
@@ -32,6 +35,7 @@ public class PathfindingEditor : Editor
         if(shouldUsePenaltyCost.boolValue == true)
         {
             EditorGUILayout.PropertyField(terrainTypes);
+            EditorGUILayout.PropertyField(obstaclePenaltyCost);
         }
         serializedObject.ApplyModifiedProperties();
         

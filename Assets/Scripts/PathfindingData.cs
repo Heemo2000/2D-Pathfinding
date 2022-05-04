@@ -13,5 +13,7 @@ public class PathfindingData : ScriptableObject
 
     public bool shouldUsePenaltyCost;
     public TerrainType[] terrainTypes;
+
+    public int obstaclePenaltyCost = 10;
     
 }

@@ -29,7 +29,9 @@ public class Pathfinding : MonoBehaviour
                 _walkable.value |= terrainType.terrainMask.value;
                 _walkableDictionary.Add((int)Mathf.Log(terrainType.terrainMask.value,2), terrainType.terrainPenalty);
             }
-            Debug.Log(System.Convert.ToString(_walkable,2));
+
+            BlurPenaltyMap(3);
+            //Debug.Log(System.Convert.ToString(_walkable,2));
         }
         
     }
@@ -47,7 +49,7 @@ public class Pathfinding : MonoBehaviour
                 currentNode.Walkable = walkable;
                 
                 int movementPenalty = 0;
-                if(currentNode.Walkable && pathfindingData.shouldUsePenaltyCost)
+                if(pathfindingData.shouldUsePenaltyCost)
                 {
                     RaycastHit2D hit = Physics2D.CircleCast(
                                                             _grid.GetWorldPosition(currentNode.PositionInGrid),
@@ -56,8 +58,13 @@ public class Pathfinding : MonoBehaviour
                                                             );
                     if(hit.collider != null)
                     {   
-                        Debug.Log("GameObject Name : " + hit.transform.gameObject + ", Layer : " + hit.transform.gameObject.layer);
+                        //Debug.Log("GameObject Name : " + hit.transform.gameObject + ", Layer : " + hit.transform.gameObject.layer);
                         _walkableDictionary.TryGetValue(hit.transform.gameObject.layer,out movementPenalty);
+                    }
+
+                    if(!walkable)
+                    {
+                        movementPenalty = pathfindingData.obstaclePenaltyCost;
                     }
                     //Debug.Log("Movement Penalty : " + movementPenalty);
                 }
@@ -178,7 +185,71 @@ public class Pathfinding : MonoBehaviour
         
     }
 
+    private void BlurPenaltyMap(int blurSize)
+    {
+        int kernelSize = 2 * blurSize + 1;
+        //Squares between center and edge of kernel.
+        int kernelExtents = (kernelSize - 1)/2;
 
+        int[,] blurHorizontalPass = new int[pathfindingData.width,pathfindingData.height];
+        int[,] blurVerticalPass = new int[pathfindingData.width,pathfindingData.height];
+
+        //Here, traversing horizontally.
+        for(int y = 0 ; y < pathfindingData.height; y++)
+        {
+            /*
+            for(int x = -kernelExtents; x <= kernelExtents; x++)
+            {
+                int sampleX = Mathf.Clamp(x,0,kernelExtents);
+                blurHorizontalPass[0,y] += _grid.GetCellValue(sampleX,y).MovementPenalty;
+            }
+            */
+            for(int x = 0; x < kernelExtents; x++)
+            {
+                blurHorizontalPass[0,y] += _grid.GetCellValue(x,y).MovementPenalty;
+            }
+
+            for(int x = 1; x < pathfindingData.width; x++)
+            {
+                int removeIndex = Mathf.Clamp(x - kernelExtents - 1,0,pathfindingData.width);
+                int addIndex = Mathf.Clamp(x + kernelExtents,0,pathfindingData.width - 1);
+
+                blurHorizontalPass[x,y] += blurHorizontalPass[x - 1,y] -_grid.GetCellValue(removeIndex,y).MovementPenalty + _grid.GetCellValue(addIndex,y).MovementPenalty;
+            }
+        }
+
+        //Here, traversing vertically.
+        for(int x = 0 ; x < pathfindingData.width; x++)
+        {
+            /*
+            for(int y = -kernelExtents; y <= kernelExtents; y++)
+            {
+                int sampleY = Mathf.Clamp(y,0,kernelExtents);
+                blurVerticalPass[x,0] += blurHorizontalPass[x,sampleY];
+            }
+            */
+            for(int y = 0; y < kernelExtents; y++)
+            {
+                
+                blurVerticalPass[x,0] += blurHorizontalPass[x,y];
+            }
+
+            //To make the bottom most region blury too, we have to separately calculate blurred penalty for that.
+            int blurredPenalty = Mathf.FloorToInt((float)blurVerticalPass[x,0]/(kernelSize * kernelSize));
+            _grid.GetCellValue(x,0).MovementPenalty = blurredPenalty;
+
+            for(int y = 1; y < pathfindingData.height; y++)
+            {
+                int removeIndex = Mathf.Clamp(y - kernelExtents - 1,0,pathfindingData.height);
+                int addIndex = Mathf.Clamp(y + kernelExtents,0,pathfindingData.height - 1);
+
+                blurVerticalPass[x,y] += blurVerticalPass[x,y - 1] -blurHorizontalPass[x,removeIndex] + blurHorizontalPass[x,addIndex];
+                blurredPenalty = Mathf.FloorToInt((float)blurVerticalPass[x,y]/(kernelSize * kernelSize));
+                _grid.GetCellValue(x,y).MovementPenalty = blurredPenalty;
+            }
+        }
+
+    }
     private int GetDistance(Node nodeA,Node nodeB)
     {
         int xDistance = Mathf.Abs(nodeA.PositionInGrid.x - nodeB.PositionInGrid.x);
