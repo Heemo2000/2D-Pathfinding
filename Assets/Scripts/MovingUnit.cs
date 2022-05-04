@@ -17,6 +17,8 @@ public class MovingUnit : MonoBehaviour
     [SerializeField]private float turnDistance = 10f;
     [SerializeField]private float turnSpeed = 5f;
     [SerializeField]private bool showPath = true;
+
+    [SerializeField]private float slowDownDistance = 2f;
     private Path _path;
     
     private Coroutine _moveCoroutine;
@@ -27,13 +29,17 @@ public class MovingUnit : MonoBehaviour
     }
     public void MoveToDestination(Vector2 destination)
     {
+        /*
         if(_updateCoroutine != null)
         {
             StopCoroutine(_updateCoroutine);
         }
         _updateCoroutine = StartCoroutine(UpdatePath(destination));
+        */
+        PathRequestManager.Instance.RequestPath(transform.position,destination,OnPathComplete);
     }
 
+    /*
     private IEnumerator UpdatePath(Vector2 destination)
     {
         if(Time.timeSinceLevelLoad < MaxTimeSinceLevelLoad)
@@ -54,11 +60,12 @@ public class MovingUnit : MonoBehaviour
             yield return new WaitForSeconds(MinPathUpdateTime);
         }
     }
+    */
     private void OnPathComplete(List<Vector2> wayPoints,bool pathFindSuccess)
     {
         if(pathFindSuccess)
         {
-           _path = new Path(wayPoints,transform.position,turnDistance);
+           _path = new Path(wayPoints,transform.position,turnDistance,slowDownDistance);
            if(_moveCoroutine != null)
            {
                StopCoroutine(_moveCoroutine);
@@ -77,21 +84,32 @@ public class MovingUnit : MonoBehaviour
         _path.DrawPath(5f);
 
         int i = 0;
-        //Debug.Log("Turn boundaries size : " + _path.TurnBoundaries.Count);
-        //Debug.Log("WayPoints size : " + _path.WayPoints.Count);
+        int finalPathIndex = _path.TurnBoundaries.Count - 1;
         while(i < _path.TurnBoundaries.Count)
         {
             Line turnBoundary = _path.TurnBoundaries[i];
-            Vector2 currentWayPoint = _path.WayPoints[i];
-            //Debug.Log("i = " +i);
-            
+            Vector2 currentWayPoint = _path.WayPoints[i];            
 
             Vector2 direction = (currentWayPoint - (Vector2)transform.position).normalized;
             float rotateAngle = Mathf.Atan2(direction.y,direction.x) * Mathf.Rad2Deg;
             
             Quaternion targetRotation = Quaternion.AngleAxis(rotateAngle,Vector3.forward);
             transform.rotation = Quaternion.Lerp(transform.rotation,targetRotation,turnSpeed * Time.fixedDeltaTime);
-            transform.Translate(Vector2.right * moveSpeed * Time.fixedDeltaTime,Space.Self);
+            if(i >= _path.SlowDownIndex)
+            {
+                float speedPercent = Mathf.Clamp01(_path.TurnBoundaries[finalPathIndex].DistanceFromPoint(transform.position)/slowDownDistance);
+                if(speedPercent <= 0.01f)
+                {
+                    speedPercent = 0f;
+                    break;
+                }
+                Debug.Log("Speed Percent : " + speedPercent);
+                transform.Translate(Vector2.right * moveSpeed * speedPercent * Time.fixedDeltaTime,Space.Self);
+            }
+            else
+            {
+                transform.Translate(Vector2.right * moveSpeed * Time.fixedDeltaTime,Space.Self);
+            }
             if(turnBoundary.HasCrossedLine(transform.position))
             {
                 i++;   

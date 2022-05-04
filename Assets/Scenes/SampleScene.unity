@@ -779,14 +779,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 522bec48951dcc343ae1f91038d13431, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 5
-  nextWayPointDistance: 1
+  moveSpeed: 20
+  pathUpdateMoveThreshold: 0.6
   obstacleMask:
     serializedVersion: 2
     m_Bits: 64
   turnDistance: 1
-  turnSpeed: 10
+  turnSpeed: 20
   showPath: 1
+  slowDownDistance: 2
 --- !u!1 &924529363
 GameObject:
   m_ObjectHideFlags: 0

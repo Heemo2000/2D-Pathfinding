@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9aa3240ec3976c14b97925afe2086335, type: 3}
   m_Name: Pathfinding Data
   m_EditorClassIdentifier: 
-  width: 40
-  height: 40
-  cellSize: 0.5
+  width: 20
+  height: 20
+  cellSize: 1
   shouldUsePenaltyCost: 1
   terrainTypes:
   - terrainMask:
@@ -25,4 +25,4 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 128
     terrainPenalty: 100
-  obstaclePenaltyCost: 10
+  obstaclePenaltyCost: 100

@@ -62,6 +62,14 @@ public struct Line
 		return GetSide (point) != approachSide;
 	}
 
+    public float DistanceFromPoint(Vector2 point)
+    {
+        float yPerpendicularIntercept = point.y - perpendicularGradient * point.x;
+        float intersectX = (yPerpendicularIntercept - yIntercept)/(gradient - perpendicularGradient);
+        float intersectY = gradient * intersectX + yIntercept;
+
+        return Vector2.Distance(point, new Vector2(intersectX,intersectY));
+    }
     public void DrawLine(float length,float pathShowingTime)
     {
         Vector2 lineDirection = new Vector2(1,gradient).normalized;

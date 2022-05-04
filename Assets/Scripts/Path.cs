@@ -6,10 +6,13 @@ public class Path
 {
     private List<Vector2> wayPoints;
     private List<Line> turnBoundaries;
+    private int slowDownIndex;
+    
     public List<Line> TurnBoundaries { get => turnBoundaries;}
     public List<Vector2> WayPoints { get => wayPoints;}
+    public int SlowDownIndex { get => slowDownIndex; }
 
-    public Path(List<Vector2> wayPoints,Vector2 startPosition,float turnDistance)
+    public Path(List<Vector2> wayPoints,Vector2 startPosition,float turnDistance,float slowDownDistance)
     {
         this.wayPoints = wayPoints;
         this.turnBoundaries = new List<Line>(wayPoints.Count);
@@ -23,6 +26,17 @@ public class Path
             Line newLine = new Line(currentPoint,previousPoint- currentPointDirection * turnDistance);
             this.turnBoundaries.Add(newLine);
             previousPoint = turnBoundaryPoint;
+        }
+
+        float currentDistance = 0f;
+        for(int i = wayPoints.Count - 1; i > 0 ; i--)
+        {
+            currentDistance += Vector2.Distance(wayPoints[i],wayPoints[i-1]);
+            if(currentDistance > slowDownDistance)
+            {
+                slowDownIndex = i;
+                break;
+            }
         }
     }
 
